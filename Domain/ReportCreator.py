@@ -33,45 +33,45 @@ class ReportCreator:
             excel_name = excel_name.split('/')[0]
         with ExcelWriter(path=f'Reports/{excel_name}.xlsx') as writer:
             df_report_pov_legacy.to_excel(writer, sheet_name='pov_legacy', index=False)
-            print('done writing report pov legacy')
+            logging.info('done writing report pov legacy')
             df_report_pov_toestel = self.start_creating_report_pov_toestel(installatie_nummer=installatie_nummer)
             df_report_pov_toestel.to_excel(writer, sheet_name='pov_toestel', index=False)
-            print('done writing report pov toestel')
+            logging.info('done writing report pov toestel')
             df_report_pov_armatuur_controller = self.start_creating_report_pov_armatuur_controller(
                 installatie_nummer=installatie_nummer)
             df_report_pov_armatuur_controller.to_excel(writer, sheet_name='pov_ac', index=False)
-            print('done writing report pov ac')
+            logging.info('done writing report pov ac')
             df_report_pov_drager = self.start_creating_report_pov_drager(installatie_nummer=installatie_nummer)
             df_report_pov_drager.to_excel(writer, sheet_name='pov_drager', index=False)
-            print('done writing report pov drager')
+            logging.info('done writing report pov drager')
             df_report_pov_segment_controller = self.start_creating_report_pov_segment_controller(installatie_nummer=installatie_nummer)
             df_report_pov_segment_controller.to_excel(writer, sheet_name='pov_segm_c', index=False)
-            print('done writing report pov segment controller')
+            logging.info('done writing report pov segment controller')
             df_report_pov_montagekast = self.start_creating_report_pov_montagekast(installatie_nummer=installatie_nummer)
             df_report_pov_montagekast.to_excel(writer, sheet_name='pov_montagekast', index=False)
-            print('done writing report pov montagekast')
+            logging.info('done writing report pov montagekast')
             df_report_pov_leddriver = self.start_creating_report_pov_leddriver(installatie_nummer=installatie_nummer)
             df_report_pov_leddriver.to_excel(writer, sheet_name='pov_driver', index=False)
-            print('done writing report pov leddriver')
+            logging.info('done writing report pov leddriver')
 
             df = self.start_creating_asset_data_drager(installatie_nummer=installatie_nummer)
             df.to_excel(writer, sheet_name='asset_data_otl_drager', index=False)
-            print('done writing asset data drager')
+            logging.info('done writing asset data drager')
             df = self.start_creating_asset_data_toestel(installatie_nummer=installatie_nummer)
             df.to_excel(writer, sheet_name='asset_data_toestel', index=False)
-            print('done writing asset data toestel')
+            logging.info('done writing asset data toestel')
             df = self.start_creating_asset_data_ac(installatie_nummer=installatie_nummer)
             df.to_excel(writer, sheet_name='asset_data_ac', index=False)
-            print('done writing asset data armatuur controller')
+            logging.info('done writing asset data armatuur controller')
             df = self.start_creating_asset_data_segment_controller(installatie_nummer=installatie_nummer)
             df.to_excel(writer, sheet_name='asset_data_segm_c', index=False)
-            print('done writing asset data segment controller')
+            logging.info('done writing asset data segment controller')
             df = self.start_creating_asset_data_leddriver(installatie_nummer=installatie_nummer)
             df.to_excel(writer, sheet_name='asset_data_leddriver', index=False)
-            print('done writing asset data leddriver')
+            logging.info('done writing asset data leddriver')
             df = self.start_creating_asset_data_montagekast(installatie_nummer=installatie_nummer)
             df.to_excel(writer, sheet_name='asset_data_montagekast', index=False)
-            print('done writing asset data montagekast')
+            logging.info('done writing asset data montagekast')
             summary_dict = {
                 'pov_toestel_alles_ok': [
                     len(df_report_pov_toestel['alles_ok']) == df_report_pov_toestel['alles_ok'].sum()],
@@ -129,7 +129,7 @@ class ReportCreator:
         sheets.insert(0, summary_sheet)
 
         workbook.save(f'Reports/{excel_name}.xlsx')
-        print(f'done writing file {excel_name}.xlsx')
+        logging.info(f'done writing file {excel_name}.xlsx')
 
     def start_creating_asset_data_leddriver(self, installatie_nummer: str = None) -> DataFrame:
         df = DataFrame()
@@ -1173,7 +1173,7 @@ class ReportCreator:
             if not toestellen:
                 if drager_naam == '':
                     drager_naam = drager_uuid
-                logging.info(
+                logging.debug(
                     f"drager {drager_naam} van {legacy_drager_naampad} heeft geen relatie naar een LED toestel")
                 record_dict['relatie_drager_naar_toestel_aanwezig'] = [False]
                 return record_dict
@@ -1182,7 +1182,7 @@ class ReportCreator:
                 start_uuid=legacy_drager_uuid, relation_types=['HoortBij'], allowed_directions=[Direction.REVERSED],
                 return_type='info_object', filtered_node_types=['onderdeel#VerlichtingstoestelLED']))
             if not toestellen:
-                logging.info(f"{legacy_drager_naampad} heeft geen HoortBij relatie naar een LED toestel")
+                logging.debug(f"{legacy_drager_naampad} heeft geen HoortBij relatie naar een LED toestel")
                 record_dict['relatie_drager_naar_toestel_aanwezig'] = [False]
                 return record_dict
 
@@ -1206,7 +1206,7 @@ class ReportCreator:
                 return_type='info_object', filtered_node_types=['onderdeel#Armatuurcontroller']))
 
             if not controllers:
-                logging.info(f"toestel {toestel_index} van {legacy_drager_naampad} heeft geen relatie "
+                logging.debug(f"toestel {toestel_index} van {legacy_drager_naampad} heeft geen relatie "
                              f"naar een armatuur controller")
                 record_dict[f'relatie_naar_armatuur_controller_{toestel_index}_aanwezig'] = [False]
             else:
@@ -1794,7 +1794,7 @@ class ReportCreator:
                 if not naampad.startswith(installatie_nummer):
                     continue
             installatie = em_infra_client.get_installatie_by_id(uuid)
-            print(installatie)
+
 
             if not row['legacy_drager_en_drager_gelijke_toestand']:
                 print('update toestand')

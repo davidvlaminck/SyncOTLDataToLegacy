@@ -1,4 +1,5 @@
 import json
+import logging
 from itertools import batched
 from pathlib import Path
 
@@ -94,7 +95,7 @@ class DataLegacySyncer:
                                         batch_size: int = 10000):
         # work in batches of <batch_size> asset_uuids
         for uuids in batched(asset_uuids, batch_size):
-            print('collecting asset info')
+            logging.info('collecting asset info')
             asset_info_collector.start_collecting_from_starting_uuids_using_pattern(
                 starting_uuids=uuids,
                 pattern=[('uuids', 'of', 'a'),
@@ -122,10 +123,10 @@ class DataLegacySyncer:
                          ('r5', 'type_of', ['onderdeel#Sturing']),
                          ('g', '-[r4]-', 'h'),
                          ('h', 'type_of', ['lgc:installatie#SegC'])])
-            print('collected asset info starting from onderdeel#VerlichtingstoestelLED')
+            logging.info('collected asset info starting from onderdeel#VerlichtingstoestelLED')
 
         for uuids in batched(asset_uuids, batch_size):
-            print('collecting asset info')
+            logging.info('collecting asset info')
             asset_info_collector.start_collecting_from_starting_uuids_using_pattern(
                 starting_uuids=uuids,
                 pattern=[('uuids', 'of', 'a'),
@@ -155,10 +156,10 @@ class DataLegacySyncer:
                          ('h', 'type_of', ['lgc:installatie#VPLMast', 'lgc:installatie#VPConsole',
                                            'lgc:installatie#VPBevestig'])])
 
-            print('collected asset info starting from Armatuurcontroller')
+            logging.info('collected asset info starting from Armatuurcontroller')
 
         for uuids in batched(asset_uuids, batch_size):
-            print('collecting asset info')
+            logging.info('collecting asset info')
             asset_info_collector.start_collecting_from_starting_uuids_using_pattern(
                 starting_uuids=uuids,
                 pattern=[('uuids', 'of', 'a'),
@@ -183,10 +184,10 @@ class DataLegacySyncer:
                          ('r4', 'type_of', ['onderdeel#Sturing']),
                          ('g', '-[r2]->', 'h'),
                          ('h', 'type_of', ['lgc:installatie#SegC'])])
-            print('collected asset info starting from OTL drager')
+            logging.info('collected asset info starting from OTL drager')
 
         for uuids in batched(asset_uuids, batch_size):
-            print('collecting asset info')
+            logging.info('collecting asset info')
             asset_info_collector.start_collecting_from_starting_uuids_using_pattern(
                 starting_uuids=uuids,
                 pattern=[('uuids', 'of', 'a'),
@@ -213,7 +214,7 @@ class DataLegacySyncer:
                          ('r3', 'type_of', ['onderdeel#VoedtAangestuurd']),
                          ('h', '-[r4]-', 'd'),
                          ('r4', 'type_of', ['onderdeel#Sturing'])])
-            print('collected asset info starting from legacy assets')
+            logging.info('collected asset info starting from legacy assets')
 
     def _create_all_reports(self, asset_info_collector, installatie_nummer: str = None,
                             only_keep_specific_deliveries: bool = False):

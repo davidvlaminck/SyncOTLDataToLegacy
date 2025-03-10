@@ -32,7 +32,7 @@ class EMInfraRestClient:
             raise RuntimeError(response.content.decode())
 
         response_string = response.content.decode()
-        return InstallatieDTO.parse_raw(response_string)
+        return InstallatieDTO.model_validate_json(response_string)
 
     def put_installatie_by_id(self, id: str, changed_installatie: InstallatieUpdateDTO) -> bool:
         response = self.requester.put(
@@ -60,7 +60,7 @@ class EMInfraRestClient:
             raise RuntimeError(response.content.decode())
 
         response_string = response.content.decode()
-        return LocatieKenmerkDTO.parse_raw(response_string)
+        return LocatieKenmerkDTO.model_validate_json(response_string)
 
     @classmethod
     def create_locatie_kenmerk_update_from_locatie_kenmerk(cls, locatie: LocatieKenmerkDTO
@@ -79,7 +79,7 @@ class EMInfraRestClient:
     def put_locatie_kenmerk_update_by_id(self, id: str, locatie_kenmerk_update: LocatieKenmerkUpdateLocatieDTO) -> bool:
         response = self.requester.put(
             url=f'core/api/installaties/{id}/kenmerken/80052ed4-2f91-400c-8cba-57624653db11',
-            json=locatie_kenmerk_update.dict(by_alias=True))
+            json=locatie_kenmerk_update.model_dump(by_alias=True))
         if response.status_code != 202:
             print(response)
             raise RuntimeError(response.content.decode())
@@ -126,7 +126,7 @@ class EMInfraRestClient:
             raise RuntimeError(response.content.decode())
 
         response_string = response.content.decode()
-        return FeedProxyPage.parse_raw(response_string)
+        return FeedProxyPage.model_validate_json(response_string)
 
     def get_feed_page_by_number(self, page_number: str) -> FeedProxyPage:
         response = self.requester.get(
@@ -136,7 +136,7 @@ class EMInfraRestClient:
             raise RuntimeError(response.content.decode())
 
         response_string = response.content.decode()
-        return FeedProxyPage.parse_raw(response_string)
+        return FeedProxyPage.model_validate_json(response_string)
 
     def get_event_context_by_uuid(self, uuid: str) -> EventContextDTO:
         response = self.requester.get(
@@ -146,7 +146,7 @@ class EMInfraRestClient:
             raise RuntimeError(response.content.decode())
 
         response_string = response.content.decode()
-        return EventContextDTO.parse_raw(response_string)
+        return EventContextDTO.model_validate_json(response_string)
 
     def get_eigenschapwaarden_by_id(self, id: str) -> KenmerkEigenschapValueDTOList:
         response = self.requester.get(
@@ -180,7 +180,7 @@ class EMInfraRestClient:
         if not update_dict:
             return update_dto
 
-        armlengte = update_dict.get('armlengte', None)
+        armlengte = update_dict.get('armlengte')
         if armlengte == 'niet-van-toepassing':
             armlengte = 'niet van toepassing'
             update_dict['armlengte'] = armlengte
@@ -339,7 +339,7 @@ class EMInfraRestClient:
                 property='omschrijving', value=context_string, operator='CONTAINS')])])
         )
 
-        json_data = search_query_dto.dict(by_alias=True)
+        json_data = search_query_dto.model_dump(by_alias=True)
         response = self.requester.post(url='core/api/eventcontexts/search', json=json_data)
         if response.status_code != 200:
             print(response)

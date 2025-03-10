@@ -1805,14 +1805,14 @@ class ReportCreator:
             if not row['legacy_drager_en_drager_binnen_5_meter']:
                 print('update geometrie')
                 x, y = row['update_legacy_drager_geometrie'].split('|')
+                if x != 'None' and y != 'None':
+                    locatie = em_infra_client.get_locatie_by_installatie_id(uuid)
+                    print(locatie)
+                    locatie_update = em_infra_client.create_locatie_kenmerk_update_from_locatie_kenmerk(locatie)
+                    locatie_update.locatie.coordinaten.x = x
+                    locatie_update.locatie.coordinaten.y = y
 
-                locatie = em_infra_client.get_locatie_by_installatie_id(uuid)
-                print(locatie)
-                locatie_update = em_infra_client.create_locatie_kenmerk_update_from_locatie_kenmerk(locatie)
-                locatie_update.locatie.coordinaten.x = x
-                locatie_update.locatie.coordinaten.y = y
-
-                em_infra_client.put_locatie_kenmerk_update_by_id(id=uuid, locatie_kenmerk_update=locatie_update)
+                    em_infra_client.put_locatie_kenmerk_update_by_id(id=uuid, locatie_kenmerk_update=locatie_update)
 
             if not row['attributen_gelijk']:
                 print('update attributen')

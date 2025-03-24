@@ -1403,7 +1403,7 @@ class ReportCreator:
         if drager_puntgeometrie is None:
             return None, None
         # use regex to get coordinates out of wkt string in drager_puntgeometrie
-        drager_coords = re.match(r'POINT ?Z \(([\d.-]+) ([\d.-]+) ([\d.-]+)\)', drager_puntgeometrie)
+        drager_coords = re.match(r'POINT Z ?\(([\d.-]+) ([\d.-]+) ([\d.-]+)\)', drager_puntgeometrie)
         if len(drager_coords.groups()) != 3:
             return None, None
         return float(drager_coords[1]), float(drager_coords[2])

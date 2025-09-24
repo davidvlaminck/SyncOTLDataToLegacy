@@ -23,12 +23,17 @@ class ReportCreator:
 
     def create_all_reports(self, installatie_nummer: str = None, only_use_delivery: bool = False,
                            delivery_reference: str = None):
+        if installatie_nummer:
+            installatie_nummer = installatie_nummer.strip()
         df_report_pov_legacy = self.start_creating_report_pov_legacy(installatie_nummer=installatie_nummer)
         try:
             excel_name = df_report_pov_legacy['legacy_drager_naampad'].iloc[0]
         except IndexError:
             now = datetime.now()
-            excel_name = f'Report_unnamed_{now.strftime("%Y%m%d_%H%M%S")}'
+            if installatie_nummer:
+                excel_name = f'Report_{installatie_nummer}_{now.strftime("%Y%m%d_%H%M%S")}'
+            else:
+                excel_name = f'Report_unnamed_{now.strftime("%Y%m%d_%H%M%S")}'
         if excel_name is not None and '/' in excel_name:
             excel_name = excel_name.split('/')[0]
         with ExcelWriter(path=f'Reports/{excel_name}.xlsx') as writer:
@@ -129,7 +134,7 @@ class ReportCreator:
         sheets.insert(0, summary_sheet)
 
         workbook.save(f'Reports/{excel_name}.xlsx')
-        logging.info(f'done writing file {excel_name}.xlsx')
+        logging.info(f'done writing file {excel_name}.xlsx for {installatie_nummer}')
 
     def start_creating_asset_data_leddriver(self, installatie_nummer: str = None) -> DataFrame:
         df = DataFrame()

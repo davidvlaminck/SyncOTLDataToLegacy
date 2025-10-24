@@ -292,6 +292,8 @@ class EMInfraRestClient:
 
     @classmethod
     def get_type_from_value(cls, value: object) -> str:
+        if value is None:
+            return 'text'
         if isinstance(value, list):
             return 'list'
         if isinstance(value, str):

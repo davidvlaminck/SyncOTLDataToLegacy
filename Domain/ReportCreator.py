@@ -1543,8 +1543,8 @@ class ReportCreator:
 
             armlengte = drager.attr_dict.get('WVLichtmast.armlengte')
             if armlengte is not None:
-                armlengte = armlengte[76:].replace('.', ',')
-            if armlengte == 'niet-van-toepassing':
+                armlengte = armlengte[76:].replace('.', ',').replace('-', ',')
+            if armlengte == 'niet,van,toepassing':
                 armlengte = 'niet van toepassing'
             d['armlengte'] = [armlengte]
 

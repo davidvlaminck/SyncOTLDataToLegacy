@@ -52,6 +52,7 @@ class DataLegacySyncer:
             self._create_all_reports(asset_info_collector=asset_info_collector,
                                      installatie_nummer=report_information[0],
                                      only_keep_specific_deliveries=only_use_delivery)
+            self.print_collected_info_report(asset_info_collector=asset_info_collector)
 
     def collect_and_create_specific_reports(self, delivery_references: list[str], combine_single_report: bool = False,
                                             installatie_nummer: str = None):
@@ -62,6 +63,7 @@ class DataLegacySyncer:
                 delivery_references=delivery_references))
             self._collect_info_given_asset_uuids(asset_info_collector=asset_info_collector, asset_uuids=asset_uuids)
             self._create_all_reports(asset_info_collector=asset_info_collector, installatie_nummer=installatie_nummer)
+            self.print_collected_info_report(asset_info_collector=asset_info_collector)
         else:
             for delivery_reference in delivery_references:
                 asset_info_collector = AssetInfoCollector(em_infra_rest_client=self.em_infra_client,
@@ -71,6 +73,7 @@ class DataLegacySyncer:
                 self._collect_info_given_asset_uuids(asset_info_collector=asset_info_collector, asset_uuids=asset_uuids)
                 self._create_all_reports(asset_info_collector=asset_info_collector,
                                          installatie_nummer=installatie_nummer)
+                self.print_collected_info_report(asset_info_collector=asset_info_collector)
 
     def collect_and_create_reports(self):
         asset_info_collector = AssetInfoCollector(em_infra_rest_client=self.em_infra_client,
@@ -237,3 +240,13 @@ class DataLegacySyncer:
                                          db_manager=self.db_manager)
 
         delivery_finder.clear_specific_deliveries(context_strings=context_strings)
+
+    def print_collected_info_report(self, asset_info_collector: AssetInfoCollector):
+        type_dict = {}
+        for _, v in asset_info_collector.collection.object_dict.items():
+            type_dict[v.short_type] = type_dict.get(v.short_type, 0) + 1
+
+        logging.info('\033[92mCollected the following types and counts:\033[0m')
+        for k, v in type_dict.items():
+            logging.info(f'\033[92m{k}: {v}\033[0m')
+

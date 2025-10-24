@@ -1804,7 +1804,7 @@ class ReportCreator:
             if not row['legacy_drager_en_drager_gelijke_toestand']:
                 print('update toestand')
                 installatie_update = em_infra_client.create_installatie_update_from_installatie(installatie)
-                installatie_update.toestand = row['update_legacy_drager_toestand']
+                installatie_update.toestand = self.sanitize_toestand(row['update_legacy_drager_toestand'])
                 em_infra_client.put_installatie_by_id(id=uuid, changed_installatie=installatie_update)
 
             if not row['legacy_drager_en_drager_binnen_5_meter']:
@@ -1862,3 +1862,15 @@ class ReportCreator:
 
         record_dict['alles_ok'] = [alles_ok]
         return record_dict
+
+    def sanitize_toestand(self, toestand: str) -> str:
+        toestand_map = {
+            'in_ontwerp': 'IN_ONTWERP',
+            'verwijderd': 'VERWIJDERD',
+            'uit-gebruik': 'UIT_GEBRUIK',
+            'geannuleerd': 'GEANNULEERD',
+            'gepland': 'GEPLAND',
+            'in-opbouw': 'IN_OPBOUW',
+            'overgedragen': 'OVERGEDRAGEN',
+            'in-gebruik': 'IN_GEBRUIK'}
+        return toestand_map.get(toestand, toestand)

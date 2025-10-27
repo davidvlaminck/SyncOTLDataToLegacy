@@ -39,6 +39,9 @@ class ReportCreator:
         with ExcelWriter(path=f'Reports/{excel_name}.xlsx') as writer:
             df_report_pov_legacy.to_excel(writer, sheet_name='pov_legacy', index=False)
             logging.info('done writing report pov legacy')
+            df_report_pov_drager = self.start_creating_report_pov_drager(installatie_nummer=installatie_nummer)
+            df_report_pov_drager.to_excel(writer, sheet_name='pov_drager', index=False)
+            logging.info('done writing report pov drager')
             df_report_pov_toestel = self.start_creating_report_pov_toestel(installatie_nummer=installatie_nummer)
             df_report_pov_toestel.to_excel(writer, sheet_name='pov_toestel', index=False)
             logging.info('done writing report pov toestel')
@@ -46,19 +49,15 @@ class ReportCreator:
                 installatie_nummer=installatie_nummer)
             df_report_pov_armatuur_controller.to_excel(writer, sheet_name='pov_ac', index=False)
             logging.info('done writing report pov ac')
-            df_report_pov_drager = self.start_creating_report_pov_drager(installatie_nummer=installatie_nummer)
-            df_report_pov_drager.to_excel(writer, sheet_name='pov_drager', index=False)
-            logging.info('done writing report pov drager')
-            df_report_pov_segment_controller = self.start_creating_report_pov_segment_controller(installatie_nummer=installatie_nummer)
-            df_report_pov_segment_controller.to_excel(writer, sheet_name='pov_segm_c', index=False)
-            logging.info('done writing report pov segment controller')
-            df_report_pov_montagekast = self.start_creating_report_pov_montagekast(installatie_nummer=installatie_nummer)
-            df_report_pov_montagekast.to_excel(writer, sheet_name='pov_montagekast', index=False)
-            logging.info('done writing report pov montagekast')
             df_report_pov_leddriver = self.start_creating_report_pov_leddriver(installatie_nummer=installatie_nummer)
             df_report_pov_leddriver.to_excel(writer, sheet_name='pov_driver', index=False)
             logging.info('done writing report pov leddriver')
-
+            df_report_pov_montagekast = self.start_creating_report_pov_montagekast(installatie_nummer=installatie_nummer)
+            df_report_pov_montagekast.to_excel(writer, sheet_name='pov_montagekast', index=False)
+            logging.info('done writing report pov montagekast')
+            df_report_pov_segment_controller = self.start_creating_report_pov_segment_controller(installatie_nummer=installatie_nummer)
+            df_report_pov_segment_controller.to_excel(writer, sheet_name='pov_segm_c', index=False)
+            logging.info('done writing report pov segment controller')
             df = self.start_creating_asset_data_drager(installatie_nummer=installatie_nummer)
             df.to_excel(writer, sheet_name='asset_data_otl_drager', index=False)
             logging.info('done writing asset data drager')
@@ -68,30 +67,30 @@ class ReportCreator:
             df = self.start_creating_asset_data_ac(installatie_nummer=installatie_nummer)
             df.to_excel(writer, sheet_name='asset_data_ac', index=False)
             logging.info('done writing asset data armatuur controller')
-            df = self.start_creating_asset_data_segment_controller(installatie_nummer=installatie_nummer)
-            df.to_excel(writer, sheet_name='asset_data_segm_c', index=False)
-            logging.info('done writing asset data segment controller')
             df = self.start_creating_asset_data_leddriver(installatie_nummer=installatie_nummer)
             df.to_excel(writer, sheet_name='asset_data_leddriver', index=False)
             logging.info('done writing asset data leddriver')
             df = self.start_creating_asset_data_montagekast(installatie_nummer=installatie_nummer)
             df.to_excel(writer, sheet_name='asset_data_montagekast', index=False)
             logging.info('done writing asset data montagekast')
+            df = self.start_creating_asset_data_segment_controller(installatie_nummer=installatie_nummer)
+            df.to_excel(writer, sheet_name='asset_data_segm_c', index=False)
+            logging.info('done writing asset data segment controller')
             summary_dict = {
-                'pov_toestel_alles_ok': [
-                    len(df_report_pov_toestel['alles_ok']) == df_report_pov_toestel['alles_ok'].sum()],
                 'pov_drager_alles_ok': [
                     len(df_report_pov_drager['alles_ok']) == df_report_pov_drager['alles_ok'].sum()],
+                'pov_toestel_alles_ok': [
+                    len(df_report_pov_toestel['alles_ok']) == df_report_pov_toestel['alles_ok'].sum()],
                 'pov_armatuur_controller_alles_ok': [
                     len(df_report_pov_armatuur_controller['alles_ok']) == df_report_pov_armatuur_controller[
-                        'alles_ok'].sum()],
-                'pov_segment_controller_alles_ok': [
-                    len(df_report_pov_segment_controller['alles_ok']) == df_report_pov_segment_controller[
                         'alles_ok'].sum()],
                 'pov_leddriver_alles_ok': [
                     len(df_report_pov_leddriver['alles_ok']) == df_report_pov_leddriver['alles_ok'].sum()],
                 'pov_montagekast_alles_ok': [
                     len(df_report_pov_montagekast['alles_ok']) == df_report_pov_montagekast['alles_ok'].sum()],
+                'pov_segment_controller_alles_ok': [
+                    len(df_report_pov_segment_controller['alles_ok']) == df_report_pov_segment_controller[
+                        'alles_ok'].sum()],
             }
             df_summary = DataFrame(summary_dict)
             df_summary.to_excel(writer, sheet_name='Overzicht', index=False)
@@ -106,12 +105,12 @@ class ReportCreator:
                            (f'V2:V{max(len(df_report_pov_legacy) + 1, 2)}', orange_fill, orange_font),
                            (f'X2:X{max(len(df_report_pov_legacy) + 1, 2)}', red_fill, red_font)],
             'pov_toestel': [(f'E2:S{max(len(df_report_pov_toestel)+1, 2)}', red_fill, red_font)],
-            'pov_ac': [(f'E2:H{max(len(df_report_pov_armatuur_controller) + 1, 2)}', red_fill, red_font),
+            'pov_ac': [(f'E2:J{max(len(df_report_pov_armatuur_controller) + 1, 2)}', red_fill, red_font),
                         (f'K2:N{max(len(df_report_pov_armatuur_controller) + 1, 2)}', red_fill, red_font)],
             'pov_segm_c': [(f'E2:K{max(len(df_report_pov_segment_controller) + 1, 2)}', red_fill, red_font)],
-            'pov_drager': [(f'E2:H{max(len(df_report_pov_drager) + 1, 2)}', red_fill, red_font),
-                           (f'I2:J{max(len(df_report_pov_drager) + 1, 2)}', orange_fill, orange_font),
-                           (f'K2:K{max(len(df_report_pov_drager) + 1, 2)}', red_fill, red_font)],
+            'pov_drager': [(f'E2:I{max(len(df_report_pov_drager) + 1, 2)}', red_fill, red_font),
+                           (f'J2:K{max(len(df_report_pov_drager) + 1, 2)}', orange_fill, orange_font),
+                           (f'L2:L{max(len(df_report_pov_drager) + 1, 2)}', red_fill, red_font)],
             'pov_montagekast': [(f'E2:H{max(len(df_report_pov_montagekast) + 1, 2)}', red_fill, red_font)],
             'pov_driver': [(f'E2:I{max(len(df_report_pov_leddriver) + 1, 2)}', red_fill, red_font)],
             'Overzicht': [(f'A2:F2', red_fill, red_font)]
@@ -500,10 +499,10 @@ class ReportCreator:
     def start_creating_asset_data_drager(self, installatie_nummer: str = None) -> DataFrame:
         df = DataFrame()
         all_column_names = [
-            'aanlevering_id', 'aanlevering_naam', 'uuid', 'naam', 'toestand', 'geometrie', 'datumOprichtingObject',
-            'aantalArmen', 'masttype', 'masthoogte', 'kleur', 'beschermlaag', 'heeftStopcontact', 'armlengte',
-            'elekktrischeBeveiliging', 'dwarsdoorsnede', 'leverancier', 'bevestigingToestellen',
-            'normeringBotsvriendelijk', 'heeftAntiVandalismeBeugel', 'theoretischeLevensduur']
+            'aanlevering_id', 'aanlevering_naam', 'uuid', 'naam', 'type', 'toestand', 'geometrie',
+            'datumOprichtingObject', 'aantalArmen', 'masttype', 'masthoogte', 'kleur', 'beschermlaag',
+            'heeftStopcontact', 'armlengte', 'elekktrischeBeveiliging', 'dwarsdoorsnede', 'leverancier',
+            'bevestigingToestellen', 'normeringBotsvriendelijk', 'heeftAntiVandalismeBeugel', 'theoretischeLevensduur']
 
         for missing_column_name in all_column_names:
             df[missing_column_name] = None
@@ -565,7 +564,7 @@ class ReportCreator:
 
             current_drager_dict = {
                 'aanlevering_id': [aanlevering_id], 'aanlevering_naam': [aanlevering_naam],
-                'uuid': [drager_uuid], 'naam': [drager_naam],
+                'uuid': [drager_uuid], 'naam': [drager_naam], 'type': [drager.short_type.split('#')[-1]],
                 'toestand': [toestand],
                 'aantalArmen': [aantalArmen],
                 'datumOprichtingObject': [drager.attr_dict.get('AIMObject.datumOprichtingObject', None)],
@@ -672,7 +671,7 @@ class ReportCreator:
     def start_creating_report_pov_drager(self, installatie_nummer: str = None) -> DataFrame:
         df = DataFrame()
         all_column_names = [
-            'aanlevering_id', 'aanlevering_naam', 'drager_uuid', 'drager_naam', 'alles_ok',
+            'aanlevering_id', 'aanlevering_naam', 'drager_uuid', 'drager_naam', 'drager_type', 'alles_ok',
             'drager_naam_conform_conventie', 'relatie_naar_toestel_unieke_naam', 'relatie_naar_legacy_drager',
             'kleur_van_toepassing', 'kleur_ingevuld', 'kleur_ok']
 
@@ -703,6 +702,7 @@ class ReportCreator:
             current_ac_drager_dict = {
                 'aanlevering_id': [aanlevering_id], 'aanlevering_naam': [aanlevering_naam],
                 'drager_uuid': [drager_uuid], 'drager_naam': [drager_naam],
+                'drager_type': [drager.short_type.split('#')[-1]],
             }
 
             record_dict = self.get_report_record_for_one_drager(drager=drager, record_dict=current_ac_drager_dict)

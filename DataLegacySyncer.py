@@ -92,132 +92,140 @@ class DataLegacySyncer:
     #     - [ ] find reports in state db that have sufficient information to using for updates
     #     - [ ] update legacy data using the state report until everything is marked as done
     #     - [ ] update the status of the aanlevering in state db to 'verwerkt'
-    
-    @staticmethod
-    def _collect_info_given_asset_uuids(asset_info_collector: AssetInfoCollector, asset_uuids: list[str],
+
+    @classmethod
+    def _collect_info_given_asset_uuids(cls,asset_info_collector: AssetInfoCollector, asset_uuids: list[str],
                                         batch_size: int = 10000):
-        # work in batches of <batch_size> asset_uuids
+        patterns = [
+            (
+                [("uuids", "of", "a"),
+                 ("a", "type_of", ["VerlichtingstoestelLED"]),
+                 ("a", "-[r1]-", "b"),
+                 ("b", "type_of", ["onderdeel#WVLichtmast", "onderdeel#WVConsole"]),
+                 ("r1", "type_of", ["onderdeel#Bevestiging"]),
+                 ("a", "-[r1]-", "c"),
+                 ("c", "type_of", ["onderdeel#Armatuurcontroller"]),
+                 ("a", "-[r2]-", "d"),
+                 ("d", "type_of", ["onderdeel#LEDDriver"]),
+                 ("r2", "type_of", ["onderdeel#Bevestiging", "onderdeel#Sturing"]),
+                 ("c", "-[r3]->", "d"),
+                 ("r3", "type_of", ["onderdeel#VoedtAangestuurd"]),
+                 ("e", "-[r3]->", "c"),
+                 ("e", "type_of", ["onderdeel#Montagekast"]),
+                 ("b", "-[r1]-", "e"),
+                 ("b", "-[r4]->", "f"),
+                 ("a", "-[r4]->", "f"),
+                 ("f", "type_of", ["lgc:installatie#VPLMast", "lgc:installatie#VPConsole",
+                                   "lgc:installatie#VPBevestig"]),
+                 ("r4", "type_of", ["onderdeel#HoortBij"]),
+                 ("c", "-[r5]-", "g"),
+                 ("g", "type_of", ["onderdeel#Segmentcontroller"]),
+                 ("r5", "type_of", ["onderdeel#Sturing"]),
+                 ("g", "-[r4]-", "h"),
+                 ("h", "type_of", ["lgc:installatie#SegC"])],
+                "onderdeel#VerlichtingstoestelLED"
+            ),
+            (
+                [("uuids", "of", "a"),
+                 ("a", "type_of", ["onderdeel#Armatuurcontroller"]),
+                 ("a", "-[r1]-", "b"),
+                 ("b", "type_of", ["onderdeel#VerlichtingstoestelLED"]),
+                 ("r1", "type_of", ["onderdeel#Bevestiging"]),
+                 ("a", "-[r2]->", "c"),
+                 ("c", "type_of", ["onderdeel#LEDDriver"]),
+                 ("e", "-[r2]->", "a"),
+                 ("e", "type_of", ["onderdeel#Montagekast"]),
+                 ("r2", "type_of", ["onderdeel#VoedtAangestuurd"]),
+                 ("a", "-[r3]-", "d"),
+                 ("d", "type_of", ["onderdeel#Segmentcontroller"]),
+                 ("r3", "type_of", ["onderdeel#Sturing"]),
+                 ("b", "-[r4]-", "c"),
+                 ("r4", "type_of", ["onderdeel#Bevestiging", "onderdeel#Sturing"]),
+                 ("d", "-[r5]->", "f"),
+                 ("f", "type_of", ["lgc:installatie#SegC"]),
+                 ("r5", "type_of", ["onderdeel#HoortBij"]),
+                 ("b", "-[r1]-", "g"),
+                 ("e", "-[r1]-", "g"),
+                 ("g", "type_of", ["onderdeel#WVLichtmast", "onderdeel#WVConsole"]),
+                 ("b", "-[r5]->", "h"),
+                 ("g", "-[r5]->", "h"),
+                 ("h", "type_of", ["lgc:installatie#VPLMast", "lgc:installatie#VPConsole",
+                                   "lgc:installatie#VPBevestig"])],
+                "Armatuurcontroller"
+            ),
+            (
+                [("uuids", "of", "a"),
+                 ("a", "type_of", ["onderdeel#WVLichtmast", "onderdeel#WVConsole"]),
+                 ("a", "-[r1]-", "b"),
+                 ("a", "-[r1]-", "d"),
+                 ("b", "type_of", ["onderdeel#VerlichtingstoestelLED"]),
+                 ("d", "type_of", ["onderdeel#Montagekast"]),
+                 ("a", "-[r2]->", "c"),
+                 ("c", "type_of", ["lgc:installatie#VPLMast", "lgc:installatie#VPConsole"]),
+                 ("r1", "type_of", ["onderdeel#Bevestiging"]),
+                 ("r2", "type_of", ["onderdeel#HoortBij"]),
+                 ("b", "-[r1]-", "e"),
+                 ("b", "-[r1]-", "f"),
+                 ("e", "type_of", ["onderdeel#LEDDriver"]),
+                 ("f", "type_of", ["onderdeel#Armatuurcontroller"]),
+                 ("d", "-[r3]->", "f"),
+                 ("f", "-[r3]->", "e"),
+                 ("r3", "type_of", ["onderdeel#VoedtAangestuurd"]),
+                 ("f", "-[r4]-", "g"),
+                 ("g", "type_of", ["onderdeel#Segmentcontroller"]),
+                 ("r4", "type_of", ["onderdeel#Sturing"]),
+                 ("g", "-[r2]->", "h"),
+                 ("h", "type_of", ["lgc:installatie#SegC"])],
+                "OTL drager"
+            ),
+            (
+                [("uuids", "of", "a"),
+                 ("a", "type_of", ["lgc:installatie#VPLMast", "lgc:installatie#VPConsole",
+                                   "lgc:installatie#VPBevestig"]),
+                 ("a", "<-[r1]-", "b"),
+                 ("a", "<-[r1]-", "e"),
+                 ("b", "type_of", ["onderdeel#WVLichtmast", "onderdeel#WVConsole"]),
+                 ("e", "type_of", ["onderdeel#VerlichtingstoestelLED"]),
+                 ("r1", "type_of", ["onderdeel#HoortBij"]),
+                 ("c", "type_of", ["lgc:installatie#SegC"]),
+                 ("c", "<-[r1]-", "d"),
+                 ("d", "type_of", ["onderdeel#Segmentcontroller"]),
+                 ("b", "-[r2]-", "e"),
+                 ("b", "-[r2]-", "f"),
+                 ("f", "type_of", ["onderdeel#Montagekast"]),
+                 ("r2", "type_of", ["onderdeel#Bevestiging"]),
+                 ("e", "-[r2]-", "g"),
+                 ("e", "-[r2]-", "h"),
+                 ("g", "type_of", ["onderdeel#LEDDriver"]),
+                 ("h", "type_of", ["onderdeel#Armatuurcontroller"]),
+                 ("f", "-[r3]->", "h"),
+                 ("h", "-[r3]->", "g"),
+                 ("r3", "type_of", ["onderdeel#VoedtAangestuurd"]),
+                 ("h", "-[r4]-", "d"),
+                 ("r4", "type_of", ["onderdeel#Sturing"])],
+                "legacy assets"
+            ),
+        ]
+
+
+        for pattern, description in patterns:
+            cls._process_batches(pattern, description, asset_uuids, asset_info_collector,
+                             batch_size=batch_size)
+        # asset_uuids = keys from object_dict where the dict[key].is_relation is False
+        asset_uuids = [k for k, v in asset_info_collector.collection.object_dict.items() if not v.is_relation]
+
+        for pattern, description in patterns:
+            cls._process_batches(pattern, description, asset_uuids, asset_info_collector,
+                                 batch_size=batch_size)
+
+    @classmethod
+    def _process_batches(cls, pattern, description, asset_uuids, asset_info_collector, batch_size=1000):
         for uuids in batched(asset_uuids, batch_size):
             logging.info('collecting asset info')
             asset_info_collector.start_collecting_from_starting_uuids_using_pattern(
                 starting_uuids=uuids,
-                pattern=[('uuids', 'of', 'a'),
-                         ('a', 'type_of', ['VerlichtingstoestelLED']),
-                         ('a', '-[r1]-', 'b'),
-                         ('b', 'type_of', ['onderdeel#WVLichtmast', 'onderdeel#WVConsole']),
-                         ('r1', 'type_of', ['onderdeel#Bevestiging']),
-                         ('a', '-[r1]-', 'c'),
-                         ('c', 'type_of', ['onderdeel#Armatuurcontroller']),
-                         ('a', '-[r2]-', 'd'),
-                         ('d', 'type_of', ['onderdeel#LEDDriver']),
-                         ('r2', 'type_of', ['onderdeel#Bevestiging', 'onderdeel#Sturing']),
-                         ('c', '-[r3]->', 'd'),
-                         ('r3', 'type_of', ['onderdeel#VoedtAangestuurd']),
-                         ('e', '-[r3]->', 'c'),
-                         ('e', 'type_of', ['onderdeel#Montagekast']),
-                         ('b', '-[r1]-', 'e'),
-                         ('b', '-[r4]->', 'f'),
-                         ('a', '-[r4]->', 'f'),
-                         ('f', 'type_of', ['lgc:installatie#VPLMast', 'lgc:installatie#VPConsole',
-                                           'lgc:installatie#VPBevestig']),
-                         ('r4', 'type_of', ['onderdeel#HoortBij']),
-                         ('c', '-[r5]-', 'g'),
-                         ('g', 'type_of', ['onderdeel#Segmentcontroller']),
-                         ('r5', 'type_of', ['onderdeel#Sturing']),
-                         ('g', '-[r4]-', 'h'),
-                         ('h', 'type_of', ['lgc:installatie#SegC'])])
-            logging.info('collected asset info starting from onderdeel#VerlichtingstoestelLED')
-
-        for uuids in batched(asset_uuids, batch_size):
-            logging.info('collecting asset info')
-            asset_info_collector.start_collecting_from_starting_uuids_using_pattern(
-                starting_uuids=uuids,
-                pattern=[('uuids', 'of', 'a'),
-                         ('a', 'type_of', ['onderdeel#Armatuurcontroller']),
-                         ('a', '-[r1]-', 'b'),
-                         ('b', 'type_of', ['onderdeel#VerlichtingstoestelLED']),
-                         ('r1', 'type_of', ['onderdeel#Bevestiging']),
-                         ('a', '-[r2]->', 'c'),
-                         ('c', 'type_of', ['onderdeel#LEDDriver']),
-                         ('e', '-[r2]->', 'a'),
-                         ('e', 'type_of', ['onderdeel#Montagekast']),
-                         ('r2', 'type_of', ['onderdeel#VoedtAangestuurd']),
-                         ('a', '-[r3]-', 'd'),
-                         ('d', 'type_of', ['onderdeel#Segmentcontroller']),
-                         ('r3', 'type_of', ['onderdeel#Sturing']),
-                         ('b', '-[r4]-', 'c'),
-                         ('r4', 'type_of', ['onderdeel#Bevestiging', 'onderdeel#Sturing']),
-                         ('d', '-[r5]->', 'f'),
-                         ('f', 'type_of', ['lgc:installatie#SegC']),
-                         ('r5', 'type_of', ['onderdeel#HoortBij']),
-                         ('b', '-[r1]-', 'g'),
-                         ('e', '-[r1]-', 'g'),
-                         ('g', 'type_of', ['onderdeel#WVLichtmast', 'onderdeel#WVConsole']),
-
-                         ('b', '-[r5]->', 'h'),
-                         ('g', '-[r5]->', 'h'),
-                         ('h', 'type_of', ['lgc:installatie#VPLMast', 'lgc:installatie#VPConsole',
-                                           'lgc:installatie#VPBevestig'])])
-
-            logging.info('collected asset info starting from Armatuurcontroller')
-
-        for uuids in batched(asset_uuids, batch_size):
-            logging.info('collecting asset info')
-            asset_info_collector.start_collecting_from_starting_uuids_using_pattern(
-                starting_uuids=uuids,
-                pattern=[('uuids', 'of', 'a'),
-                         ('a', 'type_of', ['onderdeel#WVLichtmast', 'onderdeel#WVConsole']),
-                         ('a', '-[r1]-', 'b'),
-                         ('a', '-[r1]-', 'd'),
-                         ('b', 'type_of', ['onderdeel#VerlichtingstoestelLED']),
-                         ('d', 'type_of', ['onderdeel#Montagekast']),
-                         ('a', '-[r2]->', 'c'),
-                         ('c', 'type_of', ['lgc:installatie#VPLMast', 'lgc:installatie#VPConsole']),
-                         ('r1', 'type_of', ['onderdeel#Bevestiging']),
-                         ('r2', 'type_of', ['onderdeel#HoortBij']),
-                         ('b', '-[r1]-', 'e'),
-                         ('b', '-[r1]-', 'f'),
-                         ('e', 'type_of', ['onderdeel#LEDDriver']),
-                         ('f', 'type_of', ['onderdeel#Armatuurcontroller']),
-                         ('d', '-[r3]->', 'f'),
-                         ('f', '-[r3]->', 'e'),
-                         ('r3', 'type_of', ['onderdeel#VoedtAangestuurd']),
-                         ('f', '-[r4]-', 'g'),
-                         ('g', 'type_of', ['onderdeel#Segmentcontroller']),
-                         ('r4', 'type_of', ['onderdeel#Sturing']),
-                         ('g', '-[r2]->', 'h'),
-                         ('h', 'type_of', ['lgc:installatie#SegC'])])
-            logging.info('collected asset info starting from OTL drager')
-
-        for uuids in batched(asset_uuids, batch_size):
-            logging.info('collecting asset info')
-            asset_info_collector.start_collecting_from_starting_uuids_using_pattern(
-                starting_uuids=uuids,
-                pattern=[('uuids', 'of', 'a'),
-                         ('a', 'type_of', ['lgc:installatie#VPLMast', 'lgc:installatie#VPConsole',
-                                           'lgc:installatie#VPBevestig']),
-                         ('a', '<-[r1]-', 'b'),
-                         ('a', '<-[r1]-', 'e'),
-                         ('b', 'type_of', ['onderdeel#WVLichtmast', 'onderdeel#WVConsole']),
-                         ('e', 'type_of', ['onderdeel#VerlichtingstoestelLED']),
-                         ('r1', 'type_of', ['onderdeel#HoortBij']),
-                         ('c', 'type_of', ['lgc:installatie#SegC']),
-                         ('c', '<-[r1]-', 'd'),
-                         ('d', 'type_of', ['onderdeel#Segmentcontroller']),
-                         ('b', '-[r2]-', 'e'),
-                         ('b', '-[r2]-', 'f'),
-                         ('f', 'type_of', ['onderdeel#Montagekast']),
-                         ('r2', 'type_of', ['onderdeel#Bevestiging']),
-                         ('e', '-[r2]-', 'g'),
-                         ('e', '-[r2]-', 'h'),
-                         ('g', 'type_of', ['onderdeel#LEDDriver']),
-                         ('h', 'type_of', ['onderdeel#Armatuurcontroller']),
-                         ('f', '-[r3]->', 'h'),
-                         ('h', '-[r3]->', 'g'),
-                         ('r3', 'type_of', ['onderdeel#VoedtAangestuurd']),
-                         ('h', '-[r4]-', 'd'),
-                         ('r4', 'type_of', ['onderdeel#Sturing'])])
-            logging.info('collected asset info starting from legacy assets')
+                pattern=pattern)
+            logging.info(f'collected asset info starting from {description}')
 
     def _create_all_reports(self, asset_info_collector, installatie_nummer: str = None,
                             only_keep_specific_deliveries: bool = False):

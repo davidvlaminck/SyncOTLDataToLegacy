@@ -15,17 +15,14 @@ class AssetInfoCollector:
         self.collection = AssetCollection()
 
     def get_assets_by_uuids(self, uuids: [str]) -> Generator[dict, None, None]:
-        return self.em_infra_importer.get_objects_from_oslo_search_endpoint_using_iterator(resource='assets',
-                                                                                           filter_dict={'uuid': uuids})
+        yield from self.emson_importer.get_assets_by_uuid_using_iterator(uuids=uuids)
         # return self.emson_importer.get_assets_by_uuid_using_iterator(uuids=uuids)
 
     def get_assetrelaties_by_uuids(self, uuids: [str]) -> Generator[dict, None, None]:
-        return self.em_infra_importer.get_objects_from_oslo_search_endpoint_using_iterator(resource='assetrelaties',
-                                                                                           filter_dict={'uuid': uuids})
+        yield from self.emson_importer.get_assetrelaties_by_uuid_using_iterator(uuids=uuids)
 
     def get_assetrelaties_by_source_or_target_uuids(self, uuids: [str]) -> Generator[dict, None, None]:
-        return self.em_infra_importer.get_objects_from_oslo_search_endpoint_using_iterator(resource='assetrelaties',
-                                                                                           filter_dict={'asset': uuids})
+        yield from self.emson_importer.get_assetrelaties_by_bron_doel_uuid_using_iterator(uuids=uuids)
 
     def collect_asset_info(self, uuids: [str]) -> None:
         for asset in self.get_assets_by_uuids(uuids=uuids):

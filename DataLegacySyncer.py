@@ -42,26 +42,26 @@ class DataLegacySyncer:
         delivery_finder.find_deliveries_to_sync()
 
     def collect_and_create_multiple_specific_reports(self, report_information_tuples: list[tuple[str, str]],
-                                                     only_use_delivery: bool = True):
+                                                     only_use_delivery: bool = True, run_twice: bool = True):
         for report_information in report_information_tuples:
             asset_info_collector = AssetInfoCollector(em_infra_rest_client=self.em_infra_client,
                                                       emson_importer=self.emson_importer)
             asset_uuids = list(self.db_manager.get_asset_uuids_from_specific_deliveries(
                 delivery_references=[report_information[1]]))
-            self._collect_info_given_asset_uuids(asset_info_collector=asset_info_collector, asset_uuids=asset_uuids)
+            self._collect_info_given_asset_uuids(asset_info_collector=asset_info_collector, asset_uuids=asset_uuids, run_twice=run_twice)
             self._create_all_reports(asset_info_collector=asset_info_collector,
                                      installatie_nummer=report_information[0],
                                      only_keep_specific_deliveries=only_use_delivery)
             self.print_collected_info_report(asset_info_collector=asset_info_collector)
 
     def collect_and_create_specific_reports(self, delivery_references: list[str], combine_single_report: bool = False,
-                                            installatie_nummer: str = None):
+                                            installatie_nummer: str = None, run_twice: bool = True):
         if combine_single_report:
             asset_info_collector = AssetInfoCollector(em_infra_rest_client=self.em_infra_client,
                                                       emson_importer=self.emson_importer)
             asset_uuids = list(self.db_manager.get_asset_uuids_from_specific_deliveries(
                 delivery_references=delivery_references))
-            self._collect_info_given_asset_uuids(asset_info_collector=asset_info_collector, asset_uuids=asset_uuids)
+            self._collect_info_given_asset_uuids(asset_info_collector=asset_info_collector, asset_uuids=asset_uuids, run_twice=run_twice)
             self._create_all_reports(asset_info_collector=asset_info_collector, installatie_nummer=installatie_nummer)
             self.print_collected_info_report(asset_info_collector=asset_info_collector)
         else:
@@ -70,16 +70,16 @@ class DataLegacySyncer:
                                                           emson_importer=self.emson_importer)
                 asset_uuids = list(self.db_manager.get_asset_uuids_from_specific_deliveries(
                     delivery_references=[delivery_reference]))
-                self._collect_info_given_asset_uuids(asset_info_collector=asset_info_collector, asset_uuids=asset_uuids)
+                self._collect_info_given_asset_uuids(asset_info_collector=asset_info_collector, asset_uuids=asset_uuids, run_twice=run_twice)
                 self._create_all_reports(asset_info_collector=asset_info_collector,
                                          installatie_nummer=installatie_nummer)
                 self.print_collected_info_report(asset_info_collector=asset_info_collector)
 
-    def collect_and_create_reports(self):
+    def collect_and_create_reports(self, run_twice: bool = True):
         asset_info_collector = AssetInfoCollector(em_infra_rest_client=self.em_infra_client,
                                                   emson_importer=self.emson_importer)
         asset_uuids = self.db_manager.get_asset_uuids_from_final_deliveries()
-        self._collect_info_given_asset_uuids(asset_info_collector=asset_info_collector, asset_uuids=asset_uuids)
+        self._collect_info_given_asset_uuids(asset_info_collector=asset_info_collector, asset_uuids=asset_uuids, run_twice=run_twice)
         self._create_all_reports(asset_info_collector=asset_info_collector)
 
     def poll_aanleveringen(self):
@@ -95,7 +95,7 @@ class DataLegacySyncer:
 
     @classmethod
     def _collect_info_given_asset_uuids(cls,asset_info_collector: AssetInfoCollector, asset_uuids: list[str],
-                                        batch_size: int = 10000):
+                                        batch_size: int = 10000, run_twice: bool = True):
         patterns = [
             (
                 [("uuids", "of", "a"),
@@ -211,9 +211,10 @@ class DataLegacySyncer:
         for pattern, description in patterns:
             cls._process_batches(pattern, description, asset_uuids, asset_info_collector,
                              batch_size=batch_size)
-        # asset_uuids = keys from object_dict where the dict[key].is_relation is False
-        asset_uuids = [k for k, v in asset_info_collector.collection.object_dict.items() if not v.is_relation]
+        if not run_twice:
+            return
 
+        asset_uuids = [k for k, v in asset_info_collector.collection.object_dict.items() if not v.is_relation]
         for pattern, description in patterns:
             cls._process_batches(pattern, description, asset_uuids, asset_info_collector,
                                  batch_size=batch_size)

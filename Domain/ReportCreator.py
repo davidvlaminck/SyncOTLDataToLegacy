@@ -540,10 +540,15 @@ class ReportCreator:
             masthoogte_attr = drager.attr_dict.get('Lichtmast.masthoogte', None)
             if masthoogte_attr is not None:
                 masthoogte = masthoogte_attr.get('DtuLichtmastMasthoogte.standaardHoogte', None)
+            else:
+                masthoogte = None
             if masthoogte is not None:
                 masthoogte = masthoogte[75:]
             else:
-                masthoogte = masthoogte_attr.get('DtuLichtmastMasthoogte.afwijkendeHoogte', None)
+                if masthoogte_attr is not None:
+                    masthoogte = masthoogte_attr.get('DtuLichtmastMasthoogte.afwijkendeHoogte', None)
+                else:
+                    masthoogte = None
                 if masthoogte is not None:
                     masthoogte = str(masthoogte)
             beschermlaag = drager.attr_dict.get('Lichtmast.beschermlaag', None)
@@ -1367,7 +1372,11 @@ class ReportCreator:
         legacy_puntlocatie = legacy_drager.attr_dict.get('loc:Locatie.puntlocatie')
         if legacy_puntlocatie is None:
             return 100.0
-        legacy_puntgeometrie = legacy_puntlocatie.get('loc:3Dpunt.puntgeometrie')
+        try:
+            legacy_puntgeometrie = legacy_puntlocatie.get('loc:3Dpunt.puntgeometrie')
+        except AttributeError:
+            print(legacy_drager.attr_dict)
+            legacy_puntgeometrie = None
         if legacy_puntgeometrie is None:
             return 100.0
         legacy_coords = legacy_puntgeometrie.get('loc:DtcCoord.lambert72')
@@ -1408,7 +1417,7 @@ class ReportCreator:
         if drager_puntgeometrie is None:
             return None, None
         # use regex to get coordinates out of wkt string in drager_puntgeometrie
-        drager_coords = re.match(r'POINT Z ?\(([\d.-]+) ([\d.-]+) ([\d.-]+)\)', drager_puntgeometrie)
+        drager_coords = re.match(r'SRID=31370;POINT Z ?\(([\d.-]+) ([\d.-]+) ([\d.-]+)\)', drager_puntgeometrie)
         if len(drager_coords.groups()) != 3:
             return None, None
         return float(drager_coords[1]), float(drager_coords[2])
@@ -1503,6 +1512,8 @@ class ReportCreator:
 
         verlichtingsniveau = toestel.attr_dict.get('VerlichtingstoestelLED.verlichtingsNiveau')
         if verlichtingsniveau is not None:
+            if isinstance(verlichtingsniveau, list) and not isinstance(verlichtingsniveau, str):
+                verlichtingsniveau = verlichtingsniveau[0]
             verlichtingsniveau = verlichtingsniveau[71:].upper()
         if verlichtingsniveau == 'M3-0':
             verlichtingsniveau = 'M3'
